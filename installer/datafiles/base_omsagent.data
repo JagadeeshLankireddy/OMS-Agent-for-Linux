@@ -137,17 +137,17 @@ MAINTAINER:              'Microsoft Corporation'
 /var;                                                   755; root; root; sysdir
 /var/opt;                                               755; root; root; sysdir
 
-/etc/opt/microsoft;                                     755; root; root; sysdir
-/etc/opt/microsoft/omsagent;                            755; root; root
-/etc/opt/microsoft/omsagent/sysconf;                    755; root; root
-/etc/opt/microsoft/omsagent/sysconf/omsagent.d;         755; root; root
+/etc/opt/microsoft;                                     750; root; root; sysdir
+/etc/opt/microsoft/omsagent;                            750; root; root
+/etc/opt/microsoft/omsagent/sysconf;                    750; root; root
+/etc/opt/microsoft/omsagent/sysconf/omsagent.d;         750; root; root
 
-/opt/microsoft;                                         755; root; root; sysdir
-/opt/microsoft/omsagent;                                755; root; root
-/opt/microsoft/omsagent/bin;                            755; root; root
-/opt/microsoft/omsagent/plugin;                         755; root; root
+/opt/microsoft;                                         750; root; root; sysdir
+/opt/microsoft/omsagent;                                750; root; root
+/opt/microsoft/omsagent/bin;                            750; root; root
+/opt/microsoft/omsagent/plugin;                         750; root; root
 
-/var/opt/microsoft;                                     755; root; root; sysdir
+/var/opt/microsoft;                                     750; root; root; sysdir
 
 %Dependencies
 
@@ -162,7 +162,7 @@ WriteInstallInfo
 # owned by omsagent account. So create them as part of Postinstall, after the
 # service account is created.
 
-mkdir -m 755 /var/opt/microsoft/omsagent        2> /dev/null || true
+mkdir -m 750 /var/opt/microsoft/omsagent        2> /dev/null || true
 chown -R omsagent:omiusers /var/opt/microsoft/omsagent
 
 # Same for plugin directory:
