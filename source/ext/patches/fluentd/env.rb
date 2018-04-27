@@ -21,5 +21,5 @@ module Fluent
   DEFAULT_OJ_OPTIONS = {bigdecimal_load: :float, mode: :compat, use_to_json: true}
   DEFAULT_LISTEN_PORT = 25224
   DEFAULT_FILE_PERMISSION = 0640
-  DEFAULT_DIR_PERMISSION = 0750
+  DEFAULT_DIR_PERMISSION = 0755
 end
