@@ -409,14 +409,14 @@ get_arch()
 compare_arch()
 {
     #check if the user is trying to install the correct bundle (x64 vs. x86)
-    echo "Checking host architecture ..."
+    echo "Checking host architecture ..." >> tee /tmp/bundle.log
     HOST_ARCH=$(get_arch)
     
     case $OMS_PKG in
         *"$HOST_ARCH") 
             ;;
         *)         
-            echo "Cannot install $OMS_PKG on ${HOST_ARCH} platform"
+            echo "Cannot install $OMS_PKG on ${HOST_ARCH} platform" >> tee /tmp/bundle.log
             cleanup_and_exit $INVALID_PACKAGE_ARCH
             ;;
     esac
@@ -428,7 +428,7 @@ compare_install_type()
     # matches the installer on the machine (rpm vs.dpkg)
     if [ ! -z "$INSTALL_TYPE" ]; then
         if [ $INSTALLER != $INSTALL_TYPE ]; then
-           echo "This kit is intended for ${INSTALL_TYPE} systems and cannot install on ${INSTALLER} systems"
+           echo "This kit is intended for ${INSTALL_TYPE} systems and cannot install on ${INSTALLER} systems" >> tee /tmp/bundle.log
            cleanup_and_exit $INVALID_PACKAGE_TYPE
         fi
     fi
@@ -465,11 +465,11 @@ getInstalledVersion()
 
 shouldInstall_omsagent()
 {
-    local versionInstalled=`getInstalledVersion omsagent`
-    [ "$versionInstalled" = "None" ] && return 0
+    local versionInstalled=`getInstalledVersion omsagent` 
+    [ "$versionInstalled" = "None" ] && return 0 >> tee /tmp/bundle.log
     local versionAvailable=`getVersionNumber $OMS_PKG omsagent-`
 
-    check_version_installable $versionInstalled $versionAvailable
+    check_version_installable $versionInstalled $versionAvailable >> tee /tmp/bundle.log
 }
 
 shouldInstall_omsconfig()
@@ -478,32 +478,32 @@ shouldInstall_omsconfig()
     if python_ctypes_installed; then
         if check_if_program_exists_on_system curl; then
             local versionInstalled=`getInstalledVersion omsconfig`
-            [ "$versionInstalled" = "None" ] && return 0
-            local versionAvailable=`getVersionNumber $DSC_PKG omsconfig-`
+            [ "$versionInstalled" = "None" ] && return 0 >> tee /tmp/bundle.log
+            local versionAvailable=`getVersionNumber $DSC_PKG omsconfig-` >> tee /tmp/bundle.log
 
             check_version_installable $versionInstalled $versionAvailable
         else
-            return 1
+            return 1 >> tee /tmp/bundle.log
         fi
     else
-        return 1
+        return 1 >> tee /tmp/bundle.log
     fi
 }
 
 shouldInstall_omi()
 {
     local versionInstalled=`getInstalledVersion omi`
-    [ "$versionInstalled" = "None" ] && return 0
-    local versionAvailable=`getVersionNumber $OMI_PKG omi-`
+    [ "$versionInstalled" = "None" ] && return 0 >> tee /tmp/bundle.log
+    local versionAvailable=`getVersionNumber $OMI_PKG omi-` >> tee /tmp/bundle.log
 
     check_version_installable $versionInstalled $versionAvailable
 }
 
 shouldInstall_scx()
 {
-    local versionInstalled=`getInstalledVersion scx`
-    [ "$versionInstalled" = "None" ] && return 0
-    local versionAvailable=`getVersionNumber $SCX_PKG scx-`
+    local versionInstalled=`getInstalledVersion scx` 
+    [ "$versionInstalled" = "None" ] && return 0 >> tee /tmp/bundle.log
+    local versionAvailable=`getVersionNumber $SCX_PKG scx-` >> tee /tmp/bundle.log
 
     check_version_installable $versionInstalled $versionAvailable
 }
@@ -557,31 +557,31 @@ install_extra_package()
     # Parameter: package name to install
     # Returns: 0 on success, 1 on failure
     if [ $# -ne 1 ]; then
-        echo "INTERNAL ERROR: Incorrect number of parameters passed to install_extra_package" >&2
+        echo "INTERNAL ERROR: Incorrect number of parameters passed to install_extra_package" >&2 >> tee /tmp/bundle.log
         cleanup_and_exit $INTERNAL_ERROR
     fi
 
-    local install_cmd=""
+    local install_cmd="" >> tee /tmp/bundle.log
 
     which zypper > /dev/null 2>&1
     if [ $? -eq 0 ]; then
-        install_cmd="zypper --non-interactive install"
+        install_cmd="zypper --non-interactive install" >> tee /tmp/bundle.log
     fi
     which yum > /dev/null 2>&1
     if [ $? -eq 0 ]; then
-        install_cmd="yum install -y"
+        install_cmd="yum install -y" >> tee /tmp/bundle.log
     fi
     which apt-get > /dev/null 2>&1
     if [ $? -eq 0 ]; then
-        install_cmd="apt-get install -y"
+        install_cmd="apt-get install -y" >> tee /tmp/bundle.log
     fi
 
     if [ -z "$install_cmd" ]; then
         echo "No vendor found to install $1"
-        return 1
+        return 1 >> tee /tmp/bundle.log
     else
         $install_cmd $1
-        return $?
+        return $? >> tee /tmp/bundle.log
     fi
 }
 
