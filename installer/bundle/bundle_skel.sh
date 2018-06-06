@@ -466,10 +466,10 @@ getInstalledVersion()
 shouldInstall_omsagent()
 {
     local versionInstalled=`getInstalledVersion omsagent` 
-    [ "$versionInstalled" = "None" ] && return 0 tee /tmp/bundle.log
+    [ "$versionInstalled" = "None" ] && return 0 >> tee /tmp/bundle.log
     local versionAvailable=`getVersionNumber $OMS_PKG omsagent-`
 
-    check_version_installable $versionInstalled $versionAvailable  tee /tmp/bundle.log
+    check_version_installable $versionInstalled $versionAvailable >> tee /tmp/bundle.log
 }
 
 shouldInstall_omsconfig()
