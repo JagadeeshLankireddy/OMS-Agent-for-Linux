@@ -330,7 +330,7 @@ pkg_add()
     pkg_filename=$1
     pkg_name=$2
 
-    echo "----- Installing package: $pkg_name ($pkg_filename) -----"
+    echo "----- Installing package: $pkg_name ($pkg_filename) -----" >> tee /tmp/bundle.log
 
     ulinux_detect_openssl_version
     pkg_filename=$TMPBINDIR/$pkg_filename
@@ -338,29 +338,29 @@ pkg_add()
     if [ "$INSTALLER" = "DPKG" ]; then
         [ -z "${forceFlag}" ] && FORCE="--refuse-downgrade" || FORCE=""
         dpkg ${DPKG_CONF_QUALS} --install $FORCE ${pkg_filename}.deb
-        return $?
+        return $? >> tee /tmp/bundle.log
     else
         [ -n "${forceFlag}" ] && FORCE="--force" || FORCE=""
         rpm -ivh $FORCE ${pkg_filename}.rpm
-        return $?
+        return $? >> tee /tmp/bundle.log
     fi
 }
 
 # $1 - The package name of the package to be uninstalled
 pkg_rm()
 {
-    echo "----- Removing package: $1 -----"
+    echo "----- Removing package: $1 -----" >> tee /tmp/bundle.log
     if [ "$INSTALLER" = "DPKG" ]; then
         if [ "$installMode" = "P" ]; then
-            dpkg --purge ${1}
+            dpkg --purge ${1} >> tee /tmp/bundle.log
         else
-            dpkg --remove ${1}
+            dpkg --remove ${1} >> tee /tmp/bundle.log
         fi
     else
-        rpm --erase ${1}
+        rpm --erase ${1} >> tee /tmp/bundle.log
     fi
     if [ $? -ne 0 ]; then
-        echo "----- Ignore previous errors for package: $1 -----"
+        echo "----- Ignore previous errors for package: $1 -----" >> tee /tmp/bundle.log
     fi
 }
 
@@ -373,12 +373,12 @@ pkg_upd() {
     pkg_name=$2
     pkg_allowed=$3
 
-    echo "----- Upgrading package: $pkg_name ($pkg_filename) -----"
+    echo "----- Upgrading package: $pkg_name ($pkg_filename) -----" >> tee /tmp/bundle.log
 
     if [ -z "${forceFlag}" -a -n "$pkg_allowed" ]; then
         if [ $pkg_allowed -ne 0 ]; then
             echo "Skipping package since existing version >= version available"
-            return 0
+            return 0 >> tee /tmp/bundle.log
         fi
     fi
 
@@ -389,11 +389,11 @@ pkg_upd() {
     then
         [ -z "${forceFlag}" ] && FORCE="--refuse-downgrade" || FORCE=""
         dpkg ${DPKG_CONF_QUALS} --install $FORCE ${pkg_filename}.deb
-        return $?
+        return $? >> tee /tmp/bundle.log
     else
         [ -n "${forceFlag}" ] && FORCE="--force" || FORCE=""
         rpm --upgrade $FORCE ${pkg_filename}.rpm
-        return $?
+        return $? >> tee /tmp/bundle.log
     fi
 }
 
@@ -466,10 +466,10 @@ getInstalledVersion()
 shouldInstall_omsagent()
 {
     local versionInstalled=`getInstalledVersion omsagent` 
-    [ "$versionInstalled" = "None" ] && return 0 >> tee /tmp/bundle.log
+    [ "$versionInstalled" = "None" ] && return 0 
     local versionAvailable=`getVersionNumber $OMS_PKG omsagent-`
 
-    check_version_installable $versionInstalled $versionAvailable >> tee /tmp/bundle.log
+    check_version_installable $versionInstalled $versionAvailable 
 }
 
 shouldInstall_omsconfig()
@@ -483,18 +483,18 @@ shouldInstall_omsconfig()
 
             check_version_installable $versionInstalled $versionAvailable
         else
-            return 1 >> tee /tmp/bundle.log
+            return 1 
         fi
     else
-        return 1 >> tee /tmp/bundle.log
+        return 1 
     fi
 }
 
 shouldInstall_omi()
 {
     local versionInstalled=`getInstalledVersion omi`
-    [ "$versionInstalled" = "None" ] && return 0 >> tee /tmp/bundle.log
-    local versionAvailable=`getVersionNumber $OMI_PKG omi-` >> tee /tmp/bundle.log
+    [ "$versionInstalled" = "None" ] && return 0 
+    local versionAvailable=`getVersionNumber $OMI_PKG omi-` 
 
     check_version_installable $versionInstalled $versionAvailable
 }
@@ -512,17 +512,17 @@ shouldInstall_scx()
 remove_and_install()
 {
 
-    if [ -f /opt/microsoft/scx/bin/uninstall ]; then
+    if [ -f /opt/microsoft/scx/bin/uninstall ]; then >> tee /tmp/bundle.log
 
         /opt/microsoft/scx/bin/uninstall R force
     else
         check_if_pkg_is_installed apache-cimprov
-        if [ $? -eq 0 ]; then
+        if [ $? -eq 0 ]; then >> tee /tmp/bundle.log
             pkg_rm apache-cimprov
         fi
 
         check_if_pkg_is_installed mysql-cimprov
-        if [ $? -eq 0 ]; then
+        if [ $? -eq 0 ]; then >> tee /tmp/bundle.log
             pkg_rm mysql-cimprov
         fi
 
@@ -534,10 +534,10 @@ remove_and_install()
     local temp_status=0
 
     pkg_add $OMI_PKG omi
-    temp_status=$?
+    temp_status=$? 
 
     if [ $temp_status -ne 0 ]; then
-        echo "$OMI_PKG package failed to install and exited with status $temp_status"
+        echo "$OMI_PKG package failed to install and exited with status $temp_status" >> tee /tmp/bundle.log
         return $OMI_INSTALL_FAILED
     fi
 
@@ -545,18 +545,18 @@ remove_and_install()
     temp_status=$?
 
     if [ $temp_status -ne 0 ]; then
-        echo "$SCX_PKG package failed to install and exited with status $temp_status"
+        echo "$SCX_PKG package failed to install and exited with status $temp_status" >> tee /tmp/bundle.log
         return $SCX_INSTALL_FAILED
     fi
 
-    return 0
+    return 0 >> tee /tmp/bundle.log
 }
 
 install_extra_package()
 {
     # Parameter: package name to install
     # Returns: 0 on success, 1 on failure
-    if [ $# -ne 1 ]; then
+    if [ $# -ne 1 ]; then 
         echo "INTERNAL ERROR: Incorrect number of parameters passed to install_extra_package" >&2 >> tee /tmp/bundle.log
         cleanup_and_exit $INTERNAL_ERROR
     fi
