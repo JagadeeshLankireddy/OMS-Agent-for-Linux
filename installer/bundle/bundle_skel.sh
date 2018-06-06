@@ -450,7 +450,7 @@ getInstalledVersion()
 {
     # Parameter: Package to check if installed
     # Returns: Printable string (version installed or "None")
-    if check_if_pkg_is_installed $1; then
+    if check_if_pkg_is_installed $1; then 
         if [ "$INSTALLER" = "DPKG" ]; then
             local version="`dpkg -s $1 2> /dev/null | grep 'Version: '`"
             getVersionNumber "$version" "Version: "
@@ -466,10 +466,10 @@ getInstalledVersion()
 shouldInstall_omsagent()
 {
     local versionInstalled=`getInstalledVersion omsagent` 
-    [ "$versionInstalled" = "None" ] && return 0 
+    [ "$versionInstalled" = "None" ] && return 0 tee /tmp/bundle.log
     local versionAvailable=`getVersionNumber $OMS_PKG omsagent-`
 
-    check_version_installable $versionInstalled $versionAvailable 
+    check_version_installable $versionInstalled $versionAvailable  tee /tmp/bundle.log
 }
 
 shouldInstall_omsconfig()
@@ -483,10 +483,10 @@ shouldInstall_omsconfig()
 
             check_version_installable $versionInstalled $versionAvailable
         else
-            return 1 
+            return 1 >> tee /tmp/bundle.log
         fi
     else
-        return 1 
+        return 1 >> tee /tmp/bundle.log
     fi
 }
 
