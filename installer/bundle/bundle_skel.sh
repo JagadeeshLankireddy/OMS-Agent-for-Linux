@@ -117,7 +117,7 @@ cleanup_and_exit()
     fi
 
     if [ -n "$1" ]; then
-        echo "Shell bundle exiting with code $1" | tee -a /tmp/bundle.log
+        echo "Shell bundle exiting with code $1" 
         exit $1
     else
         exit 0
@@ -262,9 +262,9 @@ ulinux_detect_installer()
 check_if_pkg_is_installed()
 {
     if [ "$INSTALLER" = "DPKG" ]; then
-        dpkg -s $1 2> /dev/null | grep Status | grep " installed" 1> /dev/null | tee -a /tmp/bundle.log
+        dpkg -s $1 2> /dev/null | grep Status | grep " installed" 1> /dev/null 
     else
-        rpm -q $1 > /dev/null 2>&1 | tee -a /tmp/bundle.log
+        rpm -q $1 > /dev/null 2>&1 
     fi
 
     return $?
@@ -291,9 +291,9 @@ check_if_program_exists_on_system()
         cleanup_and_exit $INTERNAL_ERROR
     fi
     local exists=1 
-    check_if_pkg_is_installed $1 | tee -a /tmp/bundle.log
+    check_if_pkg_is_installed $1 
     [ $? -eq 0 ] && exists=0
-    check_if_program_in_path $1 | tee -a /tmp/bundle.log
+    check_if_program_in_path $1 
     [ $? -eq 0 ] && exists=0
     return $exists
 }
@@ -307,18 +307,18 @@ install_if_program_does_not_exist_on_system()
         cleanup_and_exit $INTERNAL_ERROR
     fi
 
-    check_if_program_exists_on_system $1 | tee -a /tmp/bundle.log
+    check_if_program_exists_on_system $1 
     if [ $? -eq 0 ]; then
         return 0
     fi
 
-    echo "$1 was not found; attempting to install $1..." | tee -a /tmp/bundle.log
-    install_extra_package $1 | tee -a /tmp/bundle.log
+    echo "$1 was not found; attempting to install $1..." 
+    install_extra_package $1 
     if [ $? -eq 0 ]; then
         return 0
     else
         # If package installation did not succeed, return the check status in case it's changed
-        check_if_program_exists_on_system $1 | tee -a /tmp/bundle.log
+        check_if_program_exists_on_system $1 
         return $?
     fi
 }
@@ -337,11 +337,11 @@ pkg_add()
 
     if [ "$INSTALLER" = "DPKG" ]; then
         [ -z "${forceFlag}" ] && FORCE="--refuse-downgrade" || FORCE=""
-        dpkg ${DPKG_CONF_QUALS} --install $FORCE ${pkg_filename}.deb | tee -a /tmp/bundle.log
+        dpkg ${DPKG_CONF_QUALS} --install $FORCE ${pkg_filename}.deb 
         return $?
     else
         [ -n "${forceFlag}" ] && FORCE="--force" || FORCE=""
-        rpm -ivh $FORCE ${pkg_filename}.rpm | tee -a /tmp/bundle.log
+        rpm -ivh $FORCE ${pkg_filename}.rpm 
         return $?
     fi
 }
@@ -352,12 +352,12 @@ pkg_rm()
     echo "----- Removing package: $1 -----" 
     if [ "$INSTALLER" = "DPKG" ]; then
         if [ "$installMode" = "P" ]; then
-            dpkg --purge ${1} | tee -a /tmp/bundle.log
+            dpkg --purge ${1} 
         else
-            dpkg --remove ${1} | tee -a /tmp/bundle.log
+            dpkg --remove ${1} 
         fi
     else
-        rpm --erase ${1} | tee -a /tmp/bundle.log
+        rpm --erase ${1} 
     fi
     if [ $? -ne 0 ]; then
         echo "----- Ignore previous errors for package: $1 -----" 
@@ -388,11 +388,11 @@ pkg_upd() {
     if [ "$INSTALLER" = "DPKG" ]
     then
         [ -z "${forceFlag}" ] && FORCE="--refuse-downgrade" || FORCE=""
-        dpkg ${DPKG_CONF_QUALS} --install $FORCE ${pkg_filename}.deb | tee -a /tmp/bundle.log
+        dpkg ${DPKG_CONF_QUALS} --install $FORCE ${pkg_filename}.deb 
         return $?
     else
         [ -n "${forceFlag}" ] && FORCE="--force" || FORCE=""
-        rpm --upgrade $FORCE ${pkg_filename}.rpm | tee -a /tmp/bundle.log
+        rpm --upgrade $FORCE ${pkg_filename}.rpm 
         return $?
     fi
 }
@@ -685,7 +685,7 @@ do
         --upgrade)
             verifyNoInstallationOption | tee -a /tmp/bundle.log
             verifyPrivileges "upgrade" | tee -a /tmp/bundle.log
-            installMode=U | tee -a /tmp/bundle.log
+            installMode=U 
             shift 1
             ;;
 
@@ -695,13 +695,13 @@ do
             ;;
 
         --debug)
-            echo "Starting shell debug mode." >&2
-            echo "" >&2
-            echo "SCRIPT_INDIRECT: $SCRIPT_INDIRECT" >&2
-            echo "SCRIPT_DIR:      $SCRIPT_DIR" >&2
-            echo "EXTRACT_DIR:     $EXTRACT_DIR" >&2
-            echo "SCRIPT:          $SCRIPT" >&2
-            echo >&2
+            echo "Starting shell debug mode." >&2 | tee -a /tmp/bundle.log
+            echo "" >&2 | tee -a /tmp/bundle.log
+            echo "SCRIPT_INDIRECT: $SCRIPT_INDIRECT" >&2 | tee -a /tmp/bundle.log
+            echo "SCRIPT_DIR:      $SCRIPT_DIR" >&2 | tee -a /tmp/bundle.log
+            echo "EXTRACT_DIR:     $EXTRACT_DIR" >&2 | tee -a /tmp/bundle.log
+            echo "SCRIPT:          $SCRIPT" >&2 | tee -a /tmp/bundle.log
+            echo >&2 | tee -a /tmp/bundle.log
             debugMode=true
             set -x
             shift 1
@@ -726,30 +726,30 @@ do
 
         -\? | -h | --help)
             usage `basename $0` >&2
-            cleanup_and_exit 0 
+            cleanup_and_exit 0 | tee -a /tmp/bundle.log
             ;;
 
          *)
             echo "Unknown argument: '$1'" >&2 | tee -a /tmp/bundle.log
             echo "Use -h or --help for usage" >&2 | tee -a /tmp/bundle.log
-            cleanup_and_exit $INVALID_OPTION_PROVIDED
+            cleanup_and_exit $INVALID_OPTION_PROVIDED | tee -a /tmp/bundle.log
             ;;
     esac
 done
 
 if [ -z "${installMode}" ]; then
     echo "$0: No options specified, specify --help for help" >&2 | tee -a /tmp/bundle.log
-    cleanup_and_exit $NO_OPTION_PROVIDED
+    cleanup_and_exit $NO_OPTION_PROVIDED | tee -a /tmp/bundle.log
 fi
 
 ONBOARD_ERROR=0
-[ -n "$topLevelDomain" ] && [ -z "$onboardID" -o -z "$onboardKey" ] && ONBOARD_ERROR=1
+[ -n "$topLevelDomain" ] && [ -z "$onboardID" -o -z "$onboardKey" ] && ONBOARD_ERROR=1 
 [ -z "$onboardID" -a -n "$onboardKey" ] && ONBOARD_ERROR=1
-[ -n "$onboardID" -a -z "$onboardKey" ] && ONBOARD_ERROR=1
+[ -n "$onboardID" -a -z "$onboardKey" ] && ONBOARD_ERROR=1 | tee -a /tmp/bundle.log
 
 if [ "$ONBOARD_ERROR" -ne 0 ]; then
     echo "Must specify both workspace ID (--id) and key (--shared) to onboard" 1>& 2 | tee -a /tmp/bundle.log
-    exit $INVALID_OPTION_PROVIDED
+    exit $INVALID_OPTION_PROVIDED | tee -a /tmp/bundle.log
 fi
 
 if [ -n "$onboardID" -a -n "$onboardKey" ]; then
@@ -757,23 +757,23 @@ if [ -n "$onboardID" -a -n "$onboardKey" ]; then
 
     cat /dev/null > $ONBOARD_FILE
     chmod 600 $ONBOARD_FILE
-    echo "WORKSPACE_ID=$onboardID" >> $ONBOARD_FILE
-    echo "SHARED_KEY=$onboardKey" >> $ONBOARD_FILE
+    echo "WORKSPACE_ID=$onboardID" >> $ONBOARD_FILE | tee -a /tmp/bundle.log
+    echo "SHARED_KEY=$onboardKey" >> $ONBOARD_FILE | tee -a /tmp/bundle.log
 
     if [ -n "$proxy" ]; then
-        echo "PROXY=$proxy" >> $ONBOARD_FILE
+        echo "PROXY=$proxy" >> $ONBOARD_FILE | tee -a /tmp/bundle.log
     fi
 
     if [ -n "$topLevelDomain" ]; then
-        echo "URL_TLD=$topLevelDomain" >> $ONBOARD_FILE
+        echo "URL_TLD=$topLevelDomain" >> $ONBOARD_FILE | tee -a /tmp/bundle.log
     fi
 
     if [ -n "$azureResourceID" ]; then
-        echo "AZURE_RESOURCE_ID=$azureResourceID" >> $ONBOARD_FILE
+        echo "AZURE_RESOURCE_ID=$azureResourceID" >> $ONBOARD_FILE | tee -a /tmp/bundle.log
     fi
 
     if [ -n "$multiHoming" ]; then
-        echo "MULTI_HOMING_MARKER=$multiHoming" >> $ONBOARD_FILE
+        echo "MULTI_HOMING_MARKER=$multiHoming" >> $ONBOARD_FILE | tee -a /tmp/bundle.log
     fi
 
 fi
@@ -886,7 +886,7 @@ fi
 if [ -n "${shouldexit}" ]
 then
     # when extracting script/tarball don't also install
-    cleanup_and_exit 0
+    cleanup_and_exit 0 | tee -a /tmp/bundle.log
 fi
 
 #
@@ -908,7 +908,7 @@ if [ "$installMode" = "I" -o "$installMode" = "U" ]; then
             echo "You can check if the ctypes module is installed by starting python and running the command: 'import ctypes'." >&2 | tee -a /tmp/bundle.log
             echo "You can run this shell bundle with --force; in this case, we will install omsagent," >&2 | tee -a /tmp/bundle.log
             echo "but omsconfig (DSC configuration) will not be available and will need to be re-installed." >&2 | tee -a /tmp/bundle.log
-            cleanup_and_exit $INSTALL_PYTHON_CTYPES
+            cleanup_and_exit $INSTALL_PYTHON_CTYPES | tee -a /tmp/bundle.log
         else
             echo "Python is not configured or it does not support ctypes on this system, please upgrade Python to a newer version that comes with the ctypes module and re-install omsconfig later." | tee -a /tmp/bundle.log
             echo "Installation will continue without installing omsconfig." | tee -a /tmp/bundle.log
@@ -918,13 +918,13 @@ if [ "$installMode" = "I" -o "$installMode" = "U" ]; then
     install_if_program_does_not_exist_on_system tar | tee -a /tmp/bundle.log
     if [ $? -ne 0 ]; then
         echo "tar was not installed, installation cannot continue. Please install tar." | tee -a /tmp/bundle.log
-        cleanup_and_exit $INSTALL_TAR
+        cleanup_and_exit $INSTALL_TAR | tee -a /tmp/bundle.log
     fi
 
     install_if_program_does_not_exist_on_system sed | tee -a /tmp/bundle.log
     if [ $? -ne 0 ]; then
         echo "sed was not installed, installation cannot continue. Please install sed." | tee -a /tmp/bundle.log
-        cleanup_and_exit $INSTALL_SED
+        cleanup_and_exit $INSTALL_SED | tee -a /tmp/bundle.log
     fi
 
     install_if_program_does_not_exist_on_system curl | tee -a /tmp/bundle.log
@@ -933,7 +933,7 @@ if [ "$installMode" = "I" -o "$installMode" = "U" ]; then
             echo "Error: curl was not installed, installation cannot continue." | tee -a /tmp/bundle.log
             echo "You can run this shell bundle with --force; in this case, we will install omsagent," | tee -a /tmp/bundle.log
             echo "but omsconfig (DSC configuration) will not be available and will need to be re-installed." | tee -a /tmp/bundle.log
-            cleanup_and_exit $INSTALL_CURL
+            cleanup_and_exit $INSTALL_CURL | tee -a /tmp/bundle.log
         else
             echo "curl was not installed, please install curl and re-install omsconfig (DSC configuration) later." | tee -a /tmp/bundle.log
             echo "Installation will continue without installing omsconfig." | tee -a /tmp/bundle.log
@@ -943,7 +943,7 @@ if [ "$installMode" = "I" -o "$installMode" = "U" ]; then
     check_if_program_exists_on_system gpg | tee -a /tmp/bundle.log
     if [ $? -ne 0 ]; then
         echo "gpg is not installed, installation cannot continue." | tee -a /tmp/bundle.log
-        cleanup_and_exit $INSTALL_GPG
+        cleanup_and_exit $INSTALL_GPG | tee -a /tmp/bundle.log
     fi
 fi
 
@@ -959,11 +959,11 @@ if [ ${STATUS} -eq 127 ]
 then
     echo "Failed: could not extract the install bundle. Exit code: 127" | tee -a /tmp/bundle.log
     echo "Please make sure that tar is installed." | tee -a /tmp/bundle.log
-    cleanup_and_exit $INSTALL_TAR
+    cleanup_and_exit $INSTALL_TAR | tee -a /tmp/bundle.log
 elif [ ${STATUS} -ne 0 ]
 then
     echo "Failed: could not extract the install bundle." | tee -a /tmp/bundle.log
-    cleanup_and_exit ${STATUS}
+    cleanup_and_exit ${STATUS} | tee -a /tmp/bundle.log
 fi
 
 if [ -n "${checkVersionAndCleanUp}" ]; then
@@ -1007,7 +1007,7 @@ if [ -n "${checkVersionAndCleanUp}" ]; then
         ./oss-kits/docker-cimprov-*.sh --version-check | tail -1 | tee -a /tmp/bundle.log
     fi
 
-    cleanup_and_exit 0
+    cleanup_and_exit 0 | tee -a /tmp/bundle.log
 fi
 
 #
@@ -1039,7 +1039,7 @@ case "$installMode" in
             shouldInstall_omi | tee -a /tmp/bundle.log
             if [ $? -eq 0 ]; then
                 pkg_add ${OMI_PKG} omi | tee -a /tmp/bundle.log
-                OMI_EXIT_STATUS=$? | tee -a /tmp/bundle.log
+                OMI_EXIT_STATUS=$? 
             fi
 
             # Install SCX
@@ -1055,7 +1055,7 @@ case "$installMode" in
                 TEMP_STATUS=$?
                 if [ $TEMP_STATUS -ne 0 ]; then
                     echo "Install failed" | tee -a /tmp/bundle.log
-                    cleanup_and_exit $TEMP_STATUS
+                    cleanup_and_exit $TEMP_STATUS | tee -a /tmp/bundle.log
                 fi
             fi
 
@@ -1064,7 +1064,7 @@ case "$installMode" in
             TEMP_STATUS=$?
             if [ $TEMP_STATUS -ne 0 ]; then
                echo "$OMS_PKG package failed to install and exited with status $TEMP_STATUS" | tee -a /tmp/bundle.log
-               cleanup_and_exit $OMS_INSTALL_FAILED
+               cleanup_and_exit $OMS_INSTALL_FAILED | tee -a /tmp/bundle.log
             fi
 
             # Install DSC
@@ -1073,7 +1073,7 @@ case "$installMode" in
                 TEMP_STATUS=$?
                 if [ $TEMP_STATUS -ne 0 ]; then
                     echo "$DSC_PKG package failed to install and exited with status $TEMP_STATUS" | tee -a /tmp/bundle.log
-                    cleanup_and_exit $DSC_INSTALL_FAILED
+                    cleanup_and_exit $DSC_INSTALL_FAILED | tee -a /tmp/bundle.log
                 fi
             fi
 
@@ -1090,7 +1090,7 @@ case "$installMode" in
 
                 ./$i
                 if [ $? -eq 0 ]; then
-                    ./oss-kits/${OSS_BUNDLE}-cimprov-*.sh --install $FORCE $restartDependencies | tee -a /tmp/bundle.log
+                    ./oss-kits/${OSS_BUNDLE}-cimprov-*.sh --install $FORCE $restartDependencies 
                     TEMP_STATUS=$?
                     if [ $TEMP_STATUS -ne 0 ]; then
                         echo "$OSS_BUNDLE provider package failed to install and exited with status $TEMP_STATUS" | tee -a /tmp/bundle.log
@@ -1108,7 +1108,7 @@ case "$installMode" in
 
                 ./$i
                 if [ $? -eq 0 ]; then
-                    ./bundles/${BUNDLE}-*universal.*.sh --install $FORCE $restartDependencies | tee -a /tmp/bundle.log
+                    ./bundles/${BUNDLE}-*universal.*.sh --install $FORCE $restartDependencies
                     TEMP_STATUS=$?
                     if [ $TEMP_STATUS -ne 0 ]; then
                         echo "$BUNDLE package failed to install and exited with status $TEMP_STATUS" | tee -a /tmp/bundle.log
@@ -1127,12 +1127,12 @@ case "$installMode" in
         # Install OMI
         shouldInstall_omi | tee -a /tmp/bundle.log
         pkg_upd ${OMI_PKG} omi $? | tee -a /tmp/bundle.log
-        OMI_EXIT_STATUS=$? | tee -a /tmp/bundle.log
+        OMI_EXIT_STATUS=$? 
 
         # Install SCX
         shouldInstall_scx | tee -a /tmp/bundle.log
         pkg_upd $SCX_PKG scx $? | tee -a /tmp/bundle.log
-        SCX_EXIT_STATUS=$? | tee -a /tmp/bundle.log
+        SCX_EXIT_STATUS=$? 
 
         # Try to re-update if any of OMI or SCX update failed
         if [ "${OMI_EXIT_STATUS}" -ne 0 -o "${SCX_EXIT_STATUS}" -ne 0 ]; then 
@@ -1141,7 +1141,7 @@ case "$installMode" in
             TEMP_STATUS=$?
             if [ $TEMP_STATUS -ne 0 ]; then
                 echo "Upgrade failed" | tee -a /tmp/bundle.log
-                cleanup_and_exit $TEMP_STATUS
+                cleanup_and_exit $TEMP_STATUS | tee -a /tmp/bundle.log
             fi
         fi
 
@@ -1160,7 +1160,7 @@ case "$installMode" in
         TEMP_STATUS=$?
         if [ $TEMP_STATUS -ne 0 ]; then
             echo "$DSC_PKG package failed to upgrade and exited with status $TEMP_STATUS" | tee -a /tmp/bundle.log
-            cleanup_and_exit $DSC_INSTALL_FAILED 
+            cleanup_and_exit $DSC_INSTALL_FAILED | tee -a /tmp/bundle.log
         fi
 
         if [ $KIT_STATUS -eq 0 ]; then
@@ -1187,7 +1187,7 @@ case "$installMode" in
 
             ./$i
             if [ $? -eq 0 ]; then
-                ./oss-kits/${OSS_BUNDLE}-cimprov-*.sh --upgrade $FORCE $restartDependencies | tee -a /tmp/bundle.log
+                ./oss-kits/${OSS_BUNDLE}-cimprov-*.sh --upgrade $FORCE $restartDependencies 
                 TEMP_STATUS=$?
                 if [ $TEMP_STATUS -ne 0 ]; then
                     echo "$OSS_BUNDLE provider package failed to upgrade and exited with status $TEMP_STATUS" | tee -a /tmp/bundle.log
@@ -1205,7 +1205,7 @@ case "$installMode" in
 
             ./$i
             if [ $? -eq 0 ]; then
-                ./bundles/${BUNDLE}-*universal.*.sh --upgrade $FORCE $restartDependencies | tee -a /tmp/bundle.log
+                ./bundles/${BUNDLE}-*universal.*.sh --upgrade $FORCE $restartDependencies 
                 TEMP_STATUS=$?
                 if [ $TEMP_STATUS -ne 0 ]; then
                     echo "$BUNDLE package failed to upgrade and exited with status $TEMP_STATUS" | tee -a /tmp/bundle.log
